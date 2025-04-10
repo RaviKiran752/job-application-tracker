@@ -3,23 +3,23 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useClerkContext } from "@/contexts/ClerkContext";
-import Index from "./pages/Index";
+import { useAuth } from "@clerk/clerk-react";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Applications from "./pages/Applications";
 import ResumeAssistant from "./pages/ResumeAssistant";
-import Analytics from "./pages/Analytics";
+import AnalyticsPage from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  const { isAuthenticated, isLoading } = useClerkContext();
+  const { isLoaded, isSignedIn } = useAuth();
 
-  if (isLoading) {
+  if (!isLoaded) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -32,19 +32,20 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <VercelAnalytics />
         <BrowserRouter>
           <Routes>
             {/* Public Routes */}
             <Route
               path="/sign-in"
               element={
-                isAuthenticated ? <Navigate to="/dashboard" replace /> : <Auth />
+                isSignedIn ? <Navigate to="/dashboard" replace /> : <Auth />
               }
             />
             <Route
               path="/sign-up"
               element={
-                isAuthenticated ? <Navigate to="/dashboard" replace /> : <Auth />
+                isSignedIn ? <Navigate to="/dashboard" replace /> : <Auth />
               }
             />
             
@@ -52,7 +53,7 @@ const App = () => {
             <Route
               path="/"
               element={
-                isAuthenticated ? (
+                isSignedIn ? (
                   <Navigate to="/dashboard" replace />
                 ) : (
                   <Navigate to="/sign-in" replace />
@@ -62,7 +63,7 @@ const App = () => {
             <Route
               path="/dashboard"
               element={
-                isAuthenticated ? (
+                isSignedIn ? (
                   <Dashboard />
                 ) : (
                   <Navigate to="/sign-in" replace />
@@ -72,7 +73,7 @@ const App = () => {
             <Route
               path="/applications"
               element={
-                isAuthenticated ? (
+                isSignedIn ? (
                   <Applications />
                 ) : (
                   <Navigate to="/sign-in" replace />
@@ -82,7 +83,7 @@ const App = () => {
             <Route
               path="/resume-assistant"
               element={
-                isAuthenticated ? (
+                isSignedIn ? (
                   <ResumeAssistant />
                 ) : (
                   <Navigate to="/sign-in" replace />
@@ -92,18 +93,8 @@ const App = () => {
             <Route
               path="/analytics"
               element={
-                isAuthenticated ? (
-                  <Analytics />
-                ) : (
-                  <Navigate to="/sign-in" replace />
-                )
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                isAuthenticated ? (
-                  <Profile />
+                isSignedIn ? (
+                  <AnalyticsPage />
                 ) : (
                   <Navigate to="/sign-in" replace />
                 )
@@ -112,15 +103,23 @@ const App = () => {
             <Route
               path="/settings"
               element={
-                isAuthenticated ? (
+                isSignedIn ? (
                   <Settings />
                 ) : (
                   <Navigate to="/sign-in" replace />
                 )
               }
             />
-            
-            {/* Catch-all route */}
+            <Route
+              path="/profile"
+              element={
+                isSignedIn ? (
+                  <Profile />
+                ) : (
+                  <Navigate to="/sign-in" replace />
+                )
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
